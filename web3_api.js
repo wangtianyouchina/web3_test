@@ -1,41 +1,64 @@
 var Web3 = require('web3');
 var web3 = new Web3("https://rinkeby.infura.io/v3/072fd3b4b8a74eb086def415c7f62c07");
-const EthereumTx = require('ethereumjs-tx').Transaction
-
-// const axios = require('axios');
 
 
+/*
+* Eth: Eth(provider),
+    Net: Net(provider),
+    Personal: Personal(provider),
+    Shh: Shh(provider),
+    Bzz: Bzz(provider),
+*/
+async function web3_test () {
 
-//Setting Receiving and Sending Address
+    console.log(Web3.modules);
+    console.log(web3.version);
+    console.log(web3.currentProvider);
+    console.log(web3.providers);
 
-var sendingAddress = '0x4614D2dcc626E9B34dE32027573c980D02A95221'
+    var subscription = web3.eth.subscribe('logs', function(error, result){
+        if (!error)
+            console.log(result);
+    });
+    
+    // unsubscribes the subscription
+    subscription.unsubscribe(function(error, success){
+        if(success)
+            console.log('Successfully unsubscribed!');
+    });
+    
+  
+    const myAddress =  "0x53fEB2fa05dB4859886c96c4360dE41BEF743d5E";
+    const nonce = await web3.eth.getTransactionCount(myAddress, 'latest'); // nonce starts counting from 0
 
-var receivingAddress = '0x110160B5ABad2b1595c4BA4030b3EF2568361790'
-var privateKey = '0xf7ca23a8ae465520447381b0faa10dc03acdf32b1a7aba2d948543463dfc3c75'
+    var transaction = {
+     'from':'0x53fEB2fa05dB4859886c96c4360dE41BEF743d5E',
+     'to': '0x29a10D5bEAE1661320b9C6d700c986D0498b10e1', // faucet address to return eth
+     'value': web3.utils.toWei('1','ether'),
+     'gas': 30000,
+    //  'maxFeePerGas': 1000000108,
+     'nonce': nonce,
+     // optional data field to send message or execute smart contract
+    };
+    // transaction["to"] = toArrs[i];
+    const PRIVATE_KEY = "d4868a44b456cb16f9d16eb5c0a6f9a3c25c221948f478dffd5e02b9dc2fbb54";
+    const signedTx = await web3.eth.accounts.signTransaction(transaction, PRIVATE_KEY);
 
-//Checking the balance of each account in ether
 
-var Tx = require('ethereumjs-tx').Transaction;
-// var privateKey = Buffer.from('f7ca23a8ae465520447381b0faa10dc03acdf32b1a7aba2d948543463dfc3c75', 'hex');
-// var nonce = await web3.eth.getTransactionCount(sendingAddress);
+    web3.eth.sendSignedTransaction(signedTx.rawTransaction, function(error, hash) {
+    if (!error) {
+      console.log("🎉 The hash of your transaction is: ", hash, "\n Check Alchemy's Mempool to view the status of your transaction!");
+    } else {
+      console.log("❗Something went wrong while submitting your transaction:", error)
+    }
+   });
 
-var rawTx = {
-  nonce: '0x5',
-  gasPrice:Web3.utils.toHex('80000000000'),//'0x09184e72a000',
-  gasLimit: web3.utils.toHex(500000),
-  from:sendingAddress,
-  to: receivingAddress,
-  value: '0x1111',
-  chainId: web3.utils.toHex(3),
-  data: Web3.utils.toHex("")
+//   await web3.eth.getBalance(accounts[0], (err, bal) => { console.log("Ganache balance", bal); } );
+//   await web3.eth.sendTransaction({to:newAccount, from:accounts[0], value:web3.utils.toWei("5", "ether")});
+//   await web3.eth.getBalance(newAccount, (err, bal) => { console.log("New Account balance", bal); } );
+console.log(web3.utils.toChecksumAddress('0xc1912fee45d61c87cc5ea59dae31190fffff232d'));
+console.log(web3.utils.toChecksumAddress('0XC1912FEE45D61C87CC5EA59DAE31190FFFFF232D'));
+
 }
 
-// var tx = new Tx(rawTx, {'chain':'ropsten'});
-// tx.sign(privateKey);
-//
-// var serializedTx = tx.serialize();
-const signedTx = await web3.eth.accounts.signTransaction(transaction, PRIVATE_KEY);
-
-// console.log('0x' + serializedTx.toString('hex'));
-web3.eth.sendSignedTransaction(signedTx)
-.on('receipt', console.log);
+web3_test();
